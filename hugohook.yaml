@@ -1,0 +1,187 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: hugohook
+  license:
+    name: MIT
+host: user.implemented.local
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /:
+    post:
+      description: Handle an event
+      operationId: handleEvent
+      parameters:
+        - in: header
+          name: X-GitHub-Event
+          type: string
+          required: true
+          enum: [ push, ping ]
+        - in: header
+          name: X-GitHub-Delivery
+          type: string
+          format: uuid
+        - in: header
+          name: X-Hub-Signature
+          # format is "sha1=<hmac digest in hex>" which is 45 bytes
+          type: string
+          minLength: 45
+          maxLength: 45
+        - in: body
+          name: event
+          schema:
+            $ref: '#/definitions/Event'
+      responses:
+        "200":
+          description: "okay status"
+        "401":
+          description: "bad secret key"
+        "500":
+          description: "internal server error"
+          schema:
+            type: string
+definitions:
+  Event:
+    type: object
+    properties:
+      # common elements:
+      sender:
+        $ref: "#/definitions/User"
+      organization:
+        $ref: "#/definitions/Organization"
+      repository:
+        $ref: "#/definitions/Repository"
+
+      # push elements:
+      ref:
+        type: string
+      head:
+        type: string
+      before:
+        type: string
+      size:
+        type: integer
+      distinct_size:
+        type: integer
+      commits:
+        $ref: "#/definitions/Commits"
+
+      # ping elements:
+      zen:
+        type: string
+      hook_id:
+        type: integer
+      hook:
+        $ref: "#/definitions/HookConfig"
+  User:
+    type: object
+    properties:
+      login:
+        type: string
+      id:
+        type: integer
+  Repository:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      full_name:
+        type: string
+      private:
+        type: boolean
+      owner:
+        $ref: "#/definitions/User"
+      description:
+        type: string
+      fork:
+        type: boolean
+      url:
+        type: string
+        format: url
+  Organization:
+    type: object
+    properties:
+      login:
+        type: string
+      id:
+        type: integer
+      url:
+        type: string
+        format: url
+      description:
+        type: string
+  Commit:
+    type: object
+    properties:
+      sha:
+        type: string
+      message:
+        type: string
+      author:
+        type: object
+        properties:
+          name:
+            type: string
+          email:
+            type: string
+            format: email
+      url:
+        type: string
+        format: url
+      distinct:
+        type: boolean
+  Commits:
+    type: object
+    type: array
+    items:
+      $ref: "#/definitions/Commit"
+  HookConfig:
+    type: object
+    properties:
+      id:
+        type: integer
+      url:
+        type: string
+        format: url
+      test_url:
+        type: string
+        format: url
+      ping_url:
+        type: string
+        format: url
+      name:
+        type: string
+      events:
+        type: array
+        items:
+          - type: string
+      active:
+        type: boolean
+      config:
+        $ref: "#/definitions/HookConfigUrl"
+      updated_at:
+        type: string
+        format: date-time
+      created_at:
+        type: string
+        format: date-time
+  HookConfigUrl:
+    type: object
+    properties:
+      url:
+        type: string
+        format: url
+      content_type:
+        type: string
+        enum: [ json, form ]
+      secret:
+        type: string
+      insecure_ssl:
+        type: string

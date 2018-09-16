@@ -1,0 +1,4 @@
+~/go/bin/swagger generate server -f hugohook.yaml
+go build github.com/bpcreech/hugohook/cmd/hugohook-server
+GSUTIL_BIN=/usr/bin/gsutil HUGO_BIN=/home/ben/go/bin/hugo HUGOHOOK_SECRET=redacted ./hugohook-server  --port 33633
+
