@@ -9,12 +9,12 @@ import (
 	errors "github.com/go-openapi/errors"
 	runtime "github.com/go-openapi/runtime"
 
+	"bytes"
+	"fmt"
 	"github.com/bpcreech/hugohook/restapi/operations"
-    "fmt"
-    "bytes"
-    "io/ioutil"
-    "github.com/google/go-github/github"
-    "os"
+	"github.com/google/go-github/github"
+	"io/ioutil"
+	"os"
 )
 
 //go:generate swagger generate server --target .. --name  --spec ../hugohook.yaml
@@ -37,7 +37,7 @@ func configureAPI(api *operations.HugohookAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	api.HandleEventHandler = operations.HandleEventHandlerFunc(operations.HandleEventHandlerImpl);
+	api.HandleEventHandler = operations.HandleEventHandlerFunc(operations.HandleEventHandlerImpl)
 
 	api.ServerShutdown = func() {}
 
@@ -60,22 +60,22 @@ func configureServer(s *http.Server, scheme, addr string) {
 // The middleware executes after routing but before authentication, binding and validation
 func setupMiddlewares(handler http.Handler) http.Handler {
 	// Use a custom http.Handler which does HMAC authentication
-    return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-    	secret := os.Getenv("HUGOHOOK_SECRET")
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		secret := os.Getenv("HUGOHOOK_SECRET")
 
-        payload, err := github.ValidatePayload(r, []byte(secret))
-        if err != nil {
-	        fmt.Println("fail to validate request payload")
+		payload, err := github.ValidatePayload(r, []byte(secret))
+		if err != nil {
+			fmt.Println("fail to validate request payload")
 
 			rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
 
 			rw.WriteHeader(401)
-        }
+		}
 
-        r.Body = ioutil.NopCloser(bytes.NewReader(payload))
+		r.Body = ioutil.NopCloser(bytes.NewReader(payload))
 
-        handler.ServeHTTP(rw, r)
-    })
+		handler.ServeHTTP(rw, r)
+	})
 	// return handler
 }
 
