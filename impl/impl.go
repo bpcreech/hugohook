@@ -10,7 +10,7 @@ import (
 )
 
 func Clone(url string) (string, error) {
-	fmt.Println("Cloning %s...", url)
+	fmt.Printf("Cloning %s...\n", url)
 	clone, err := ioutil.TempDir("", "hugohook.inp.")
 	if err != nil {
 		return "", err
@@ -24,14 +24,14 @@ func Clone(url string) (string, error) {
 }
 
 func RunHugo(clone string) (string, error) {
-	fmt.Println("Running hugo on %s...", clone)
+	fmt.Printf("Running hugo on %s...\n", clone)
 	hugo := os.Getenv("HUGO_BIN")
 
 	generated, err := ioutil.TempDir("", "hugohook.out.")
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("writing to %s", generated)
+	fmt.Printf("writing to %s\n", generated)
 
 	cmd := exec.Command(hugo, "-s", clone, "-d", generated)
 	output, err := cmd.CombinedOutput()
@@ -44,7 +44,7 @@ func RunHugo(clone string) (string, error) {
 }
 
 func Upload(generated string) error {
-	fmt.Println("Uploading %s...", generated)
+	fmt.Printf("Uploading %s...\n", generated)
 	gsutil := os.Getenv("GSUTIL_BIN")
 
 	cmd := exec.Command(gsutil, "-m", "rsync", "-R", "-d", "-a", "public-read", generated, "gs://www.bpcreech.com")
